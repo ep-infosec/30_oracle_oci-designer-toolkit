@@ -1,0 +1,76 @@
+
+{% if read_only %}
+# ------ Read Autonomous Database
+data "oci_database_autonomous_database" "{{ resource_name }}" {
+    # Required
+    autonomous_database_id = {{ ocid | safe }}
+}
+{% else %}
+# ------ Create Autonomous Database
+resource "oci_database_autonomous_database" "{{ resource_name }}" {
+    #Required
+    admin_password           = {{ admin_password | safe }}
+    compartment_id           = {{ compartment_id | safe }}
+    cpu_core_count           = {{ cpu_core_count | safe }}
+    data_storage_size_in_tbs = {{ data_storage_size_in_tbs | safe }}
+    db_name                  = {{ db_name | safe }}
+
+    #Optional
+    display_name             = {{ display_name | safe }}
+{% if subnet_id is defined %}
+    subnet_id                = {{ subnet_id }}
+{% endif %}
+{% if whitelisted_ips is defined %}
+    whitelisted_ips          = [{% for wl_id in whitelisted_ips %}{{ wl_id }}{% if not loop.last %},{% endif %}{% endfor %}]
+{% endif %}
+{% if nsg_ids is defined %}
+    nsg_ids                  = [{% for nsg_id in nsg_ids %}{{ nsg_id }}{% if not loop.last %},{% endif %}{% endfor %}]
+{% endif %}
+{% if autonomous_container_database_id is defined %}
+    autonomous_container_database_id = {{ autonomous_container_database_id }}
+{% endif %}
+{% if clone_type is defined %}
+    clone_type               = {{ clone_type | safe }}
+{% endif %}
+{% if db_workload is defined %}
+    db_workload              = {{ db_workload | safe }}
+{% endif %}
+{% if is_access_control_enabled is defined %}
+    is_access_control_enabled  = {{ is_access_control_enabled | safe | lower}}
+{% endif %}
+{% if is_auto_scaling_enabled is defined %}
+    is_auto_scaling_enabled  = {{ is_auto_scaling_enabled | safe | lower}}
+{% endif %}
+{% if is_auto_scaling_for_storage_enabled is defined %}
+    is_auto_scaling_for_storage_enabled  = {{ is_auto_scaling_for_storage_enabled | safe | lower}}
+{% endif %}
+{% if is_data_guard_enabled is defined %}
+    is_data_guard_enabled             = {{ is_data_guard_enabled | safe | lower }}
+{% endif %}
+{% if is_dedicated is defined %}
+    is_dedicated             = {{ is_dedicated | safe | lower }}
+{% endif %}
+{% if is_free_tier is defined %}
+    is_free_tier             = {{ is_free_tier | safe | lower }}
+{% endif %}
+#    is_preview_version_with_service_terms_accepted = {{ is_preview_version_with_service_terms_accepted | safe }}
+{% if license_model is defined %}
+    license_model            = {{ license_model | safe }}
+{% endif %}
+{% if source is defined %}
+    source = {{ database_source | safe }}
+    {% if source_id is defined %}
+    source_id = {{ source_id }}
+    {% endif %}
+{% endif %}
+{% if private_endpoint_label is defined %}
+    private_endpoint_label    = {{ private_endpoint_label | safe }}
+{% endif %}
+{% if defined_tags is defined %}
+    defined_tags             = {{ defined_tags | safe }}
+{% endif %}
+{% if freeform_tags is defined %}
+    freeform_tags            = {{ freeform_tags | safe }}
+{% endif %}
+}
+{% endif %}

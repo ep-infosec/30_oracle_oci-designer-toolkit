@@ -1,0 +1,26 @@
+<!--
+** Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+** Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
+-->
+{% extends "okit/propertysheets/base_property_sheet.html" %}
+
+{% block title_block %}Load Balancer{% endblock %}
+
+{% block required_properties_table_rows_block %}
+    <div class='tr'><div class='td'>Subnet</div><div class='td'><label id="subnet_id" class="okit-property-value okit-property-label"></label></div></div>
+    <div class='tr'><div class='td'>Bandwidth</div><div class='td'><select id="shape" class="okit-property-value"></select></div></div>
+    {{ properties_input('Min Bandwidth (Mbps)', 'minimum_bandwidth_in_mbps', type='number', collapsed=True, data={"min": 10, "max": 8000}) }}
+    {{ properties_input('Max Bandwidth (Mbps)', 'maximum_bandwidth_in_mbps', type='number', collapsed=True, data={"min": 10, "max": 8000}) }}
+{% endblock %}
+
+{% block optional_properties_table_rows_block %}
+    <div class='tr'><div class='td'>Backend Instances</div><div class='td'><div id="instance_ids" class="okit-multiple-select"></div></div></div>
+    <div class='tr'><div class='td'></div><div class='td'><input type="checkbox" id="is_private" name="is_private" value="false">Private</div></div>
+    <div class='tr'><div class='td'>Network Security Groups</div><div class='td'><div id="network_security_group_ids" class="okit-multiple-select"></div></div></div>
+    <div class='tr'><div class='td'>IP Mode</div><div class='td'><select id="ip_mode" class="okit-property-value">
+        <option value="" selected="selected">IPv4</option>
+        <option value="IPV6">IPv6</option>
+    </select></div></div>
+{% endblock %}
+
+{% block optional_properties_block %}{% endblock %}

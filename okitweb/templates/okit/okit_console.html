@@ -1,0 +1,103 @@
+<!--
+** Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+** Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OKIT - OCI By Design</title>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/d3-5.15.0.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/jquery-3.6.0.js') }}"></script>
+    <script type="text/javascript">const developer_mode = {{ developer_mode | lower }};</script>
+    <script type="text/javascript">const a2c_mode = {{ a2c_mode | lower }};</script>
+    <script type="text/javascript">const pca_mode = {{ pca_mode | lower }};</script>
+    <script type="text/javascript">const oci_mode = {{ oci_mode | lower }};</script>
+    <script type="text/javascript" src="{{ url_for('static', filename='okit/js/okit_common.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='okit/js/okit_console.js') }}"></script>
+    {% if use_modules is defined %}
+    <script type="module" src="{{ url_for('static', filename='okit/modules/model/okit_model.js') }}"></script>
+    {% endif %}
+    <script type="module" src="{{ url_for('static', filename='js/remarkable.js') }}"></script>
+    <!-- <script type="module">
+        import { Remarkable } from 'remarkable'
+        const md_converter = new Remarkable()
+        console.info('MD Converter', md_converter)
+    </script> -->
+
+    {% block headscripts %}{% endblock %}
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='okit/css/okit_console.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='okit/css/okit_menu.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='okit/css/theme.css') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+    {% block headcss %}{% endblock %}
+</head>
+<body>
+    <div class="okit-console">
+        <div class="okit-header-gradient"></div>
+        <div id="okit_header" class="table okit-header">
+            <div class="tr okit-console-header">
+                <div class="td okit-console-header-left-nav-button">
+                    <button id="navigation_menu_button" class="okit-navigation-menu-button">
+                        <div class="okit-navigation-menu-button-icon hamburger">
+                        </div>
+                    </button>
+                </div>
+                <div class="td okit-white okit-logo"></div>
+                <div class="td oracle-console-logo"></div>
+                <div class="td"></div>
+                {% if local_okit %}
+                <div id="config_link_div" class="td okit-console-header-icon config_alert collapsed"><a id="config_link" class="okit-icon-link" href="#" onclick="showConfigErrors(); return false;"></a></div>
+                <div class="td okit-console-header-dropdown"><select id="console_header_config_select" onchange="handleConfigChanged()">
+                    <option value="DEFAULT" selected="selected">DEFAULT</option>
+                </select></div>
+                <div class="td okit-console-header-dropdown"><select id="console_header_region_select" onchange="handleRegionChanged()">
+                    <option value="" selected="selected">Loading.....</option>
+                </select></div>
+                <div class="td okit-console-header-icon cloud"><a id="oci_link" class="okit-icon-link" href="https://cloud.oracle.com/?region=us-ashburn-1" target="_blank" rel="noopener noreferrer"></a></div>
+                <!-- <div class="td okit-console-header-icon cloud"><a id="oci_link" class="okit-icon-link" href="https://console.us-phoenix-1.oraclecloud.com" target="_blank" rel="noopener noreferrer"></a></div> -->
+                {% elif session['username'] %}
+                <div class="td okit-console-header-right"><a href="javascript:void(0)">{{ session['username'] }}</a>&nbsp;&nbsp;<a href="{{ session['logout'] }}">Logout</a></div>
+                <div class="td okit-console-header-icon cloud"><a id="oci_link" class="okit-icon-link" href="https://cloud.oracle.com/?region={{ session['home_region'] }}&tenant={{ session['tenant'] }}&provider=OracleIdentityCloudService" target="_blank" rel="noopener noreferrer"></a></div>
+                <!-- <div class="td okit-console-header-icon cloud"><a id="oci_link" class="okit-icon-link" href="https://console.{{ session['home_region'] }}.oraclecloud.com/?tenant={{ session['tenant'] }}&provider=OracleIdentityCloudService" target="_blank" rel="noopener noreferrer"></a></div> -->
+                {% else %}
+                <div class="td okit-console-header-right"><a href="/okit/login">Login</a></div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="okit-console-main">
+            <div id="navigation_menu" class="okit-navigation-menu">{% block navmenublock %}{% endblock %}</div>
+            <div id="okit_toolbar" class="okit-toolbar">{% block toolbarblock %}{% endblock %}</div>
+            <div class="main okit-console-main-body">
+                <div id="console_left_bar" class="okit-console-left-bar"></div>
+                <div class="okit-console-main-center">{% block mainblock %}{% endblock %}</div>
+                <div id="console_right_bar" class="okit-console-right-bar hidden"></div>
+            </div>
+        </div>
+        <div class="footer okit-console-footer">
+            <div class="okit-version-div"><label id="okit_version">Version</label></div>
+            <div class="okit-update-div"><a id="okit_update" href="#" target="_blank" rel="noopener noreferrer"></a></div>
+            <div>{% block footerblock %}{% endblock %}</div>
+            <div class="okit-copyright">Copyright (c) 2020, 2022, Oracle and/or its affiliates.</div>
+        </div>
+    </div>
+    {% block bodyendblock %}{% endblock %}
+    <div id="modal_dialog_wrapper" class="okit-modal-wrapper hidden">
+        <div id="modal_dialog" class="okit-modal-dialog flex-column">
+            <div class="okit-header-gradient"></div>
+            <div id="modal_dialog_header" class="okit-modal-dialog-header">
+                <div id="modal_dialog_heading" class="okit-modal-dialog-heading"><label id="modal_dialog_title"></label></div>
+                <div class="okit-modal-dialog-close-link"><button tabindex="0" type="button" class="okit-button-link" onclick="$(jqId('modal_dialog_wrapper')).addClass('hidden')">Close</button></div>
+            </div>
+            <div id="modal_dialog_body" class="okit-modal-dialog-body"></div>
+            <div id="modal_dialog_progress" class="okit-modal-dialog-progress hidden"><progress id="modal_progress"></progress></div>
+            <div id="modal_dialog_footer" class="okit-modal-dialog-footer"></div>
+        </div>
+    </div>
+    <div id="modal_loading_wrapper" class="okit-loading-wrapper hidden">
+        <div id="misshapen-doughnut"></div>
+        <div id="region_progress" class="table"></div>
+    </div>
+    {% block footerscripts %}{% endblock %}
+</body>
+</html>

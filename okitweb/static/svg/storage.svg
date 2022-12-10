@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+    id="redwood-nav-menu-storage-storage">
+    <defs>
+        <filter id="redwood-nav-menu-storage-filter-1">
+            <feColorMatrix in="SourceGraphic"
+                values="0 0 0 0 0.223529 0 0 0 0 0.772549 0 0 0 0 0.650980 0 0 0 1.000000 0"></feColorMatrix>
+        </filter>
+    </defs>
+    <g id="redwood-nav-menu-storage-icon-storage" fill="none" fill-rule="evenodd" stroke="none" stroke-width="1">
+        <g id="redwood-nav-menu-storage-Category-Icon--Storage" filter="url(#redwood-nav-menu-storage-filter-1)">
+            <path id="redwood-nav-menu-storage-Shape" stroke="#39C5A6" stroke-width="2"
+                d="M9 17H7m8-10h2M8 6v8m8 4v-8m-4-7H4v18h8m0-18v18m0-18h8v18h-8"></path>
+        </g>
+    </g>
+</svg>

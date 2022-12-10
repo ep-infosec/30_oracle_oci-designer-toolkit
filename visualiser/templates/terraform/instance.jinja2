@@ -1,0 +1,190 @@
+
+{% if read_only %}
+# ------ Read Instance
+data "oci_core_instance" "{{ resource_name }}" {
+    # Required
+    instance_id = {{ ocid | safe }}
+}
+
+locals {
+    {{ resource_name }}_id            = data.oci_core_instance.{{ resource_name }}.id
+    {{ resource_name }}_public_ip     = data.oci_core_instance.{{ resource_name }}.public_ip
+    {{ resource_name }}_private_ip    = data.oci_core_instance.{{ resource_name }}.private_ip
+}
+{% else %}
+# image_source {{ image_source | safe }}
+{% if source_details is defined and source_details.image_source is defined and source_details.image_source | safe | lower == '"custom"' %}
+# ------ Set Custom Images Id
+locals {
+    {{ resource_name }}_image_id = {{ source_details.image_id | safe }}
+}
+{% else %}
+# ------ Get List Images
+data "oci_core_images" "{{ resource_name }}Images" {
+    compartment_id           = {{ compartment_ocid }}
+    operating_system         = {{ source_details.os | safe }}
+    operating_system_version = {{ source_details.version | safe }}
+    shape                    = {{ shape | safe }}
+}
+locals {
+    {{ resource_name }}_image_id = data.oci_core_images.{{ resource_name }}Images.images[0]["id"]
+}
+{% endif %}
+
+# ------ Create Instance
+resource "oci_core_instance" "{{ resource_name }}" {
+    # Required
+    compartment_id      = {{ compartment_id }}
+    shape               = {{ shape | safe }}
+    # Optional
+    display_name        = {{ display_name | safe }}
+    availability_domain = data.oci_identity_availability_domains.AvailabilityDomains.availability_domains[{{ availability_domain | safe }} - 1]["name"]
+{% if agent_config is defined and (is_management_disabled is defined or is_monitoring_disabled is defined) %}
+    agent_config {
+        # Optional
+{% if is_management_disabled is defined %}
+        agent_config.is_management_disabled = {{ agent_config.is_management_disabled | safe }}
+{% endif %}
+{% if is_monitoring_disabled is defined %}
+        agent_config.is_monitoring_disabled = {{ agent_config.is_monitoring_disabled | safe }}
+{% endif %}
+    }
+{% endif %}
+    create_vnic_details {
+        # Required
+        subnet_id        = {{ vnic_attachments[0].subnet_id }}
+        # Optional
+        assign_public_ip = {{ vnic_attachments[0].assign_public_ip | safe | lower }}
+        display_name     = {{ vnic_attachments[0].display_name | safe }}
+        hostname_label   = {{ vnic_attachments[0].hostname_label | safe }}
+{% if vnic_attachments[0].nsg_ids is defined %}
+        nsg_ids          = [{% for nsg_id in vnic_attachments[0].nsg_ids %}{{ nsg_id }}{% if not loop.last %},{% endif %}{% endfor %}]
+{% endif %}
+{% if vnic_attachments[0].private_ip is defined %}
+        private_ip       = {{ vnic_attachments[0].private_ip | safe }}
+{% endif %}
+{% if vnic_attachments[0].skip_source_dest_check is defined %}
+        skip_source_dest_check = {{ vnic_attachments[0].skip_source_dest_check | safe | lower }}
+{% endif %}
+{% if defined_tags is defined %}
+        defined_tags     = {{ defined_tags | safe }}
+{% endif %}
+{% if freeform_tags is defined %}
+        freeform_tags    = {{ freeform_tags | safe }}
+{% endif %}
+    }
+{% if fault_domain is defined %}
+    fault_domain = {{ fault_domain | safe }}
+{% endif %}
+{% if metadata is defined %}
+    metadata = {
+{% if metadata.ssh_authorized_keys is defined %}
+        ssh_authorized_keys = {{ metadata.ssh_authorized_keys | safe }}
+{% endif %}
+{% if metadata.user_data is defined %}
+        user_data           = base64encode({{ metadata.user_data | safe }})
+{% endif %}
+    }
+{% endif %}
+{% if shape_config is defined %}
+    shape_config {
+        #Optional
+        memory_in_gbs = {{ shape_config.memory_in_gbs | safe }}
+        ocpus = {{ shape_config.ocpus | safe }}
+    }
+{% endif %}
+    source_details {
+        # Required
+        source_id               = local.{{ resource_name }}_image_id
+        source_type             = {{ source_details.source_type | safe }}
+        # Optional
+        boot_volume_size_in_gbs = {{ source_details.boot_volume_size_in_gbs | safe }}
+#        kms_key_id              = {{ source_details.kms_key_id | safe }}
+    }
+{% if preserve_boot_volume is defined %}
+    preserve_boot_volume = {{ preserve_boot_volume | safe | lower }}
+{% endif %}
+{% if defined_tags is defined %}
+    defined_tags               = {{ defined_tags | safe }}
+{% endif %}
+{% if freeform_tags is defined %}
+    freeform_tags              = {{ freeform_tags | safe }}
+{% endif %}
+}
+
+data "oci_core_private_ips" "{{ resource_name }}_private_ip" {
+    #Optional
+    ip_address = oci_core_instance.{{ resource_name }}.private_ip
+    subnet_id = {{ vnic_attachments[0].subnet_id }}
+}
+
+locals {
+    {{ resource_name }}_id               = oci_core_instance.{{ resource_name }}.id
+    {{ resource_name }}_public_ip        = oci_core_instance.{{ resource_name }}.public_ip
+    {{ resource_name }}_private_ip       = oci_core_instance.{{ resource_name }}.private_ip
+    {{ resource_name }}_display_name     = oci_core_instance.{{ resource_name }}.display_name
+    {{ resource_name }}_compartment_id   = oci_core_instance.{{ resource_name }}.compartment_id
+    {{ resource_name }}_hostname         = {{ vnic_attachments[0].hostname_label | safe }}
+    {{ resource_name }}_primary_vnic_id  = data.oci_core_private_ips.{{ resource_name }}_private_ip.private_ips[0].vnic_id
+}
+
+output "{{ resource_name }}PublicIP" {
+    value = [local.{{ resource_name }}_display_name, local.{{ resource_name }}_public_ip]
+}
+
+output "{{ resource_name }}PrivateIP" {
+    value = [local.{{ resource_name }}_display_name, local.{{ resource_name }}_private_ip]
+}
+
+# ------ Create Block Storage Attachments
+{% for volume in volume_attachments %}
+resource "oci_core_volume_attachment" "{{ volume.resource_name }}" {
+    attachment_type = {{ volume.attachment_type | safe }}
+    instance_id     = local.{{ resource_name }}_id
+    volume_id       = {{ volume.volume_id }}
+{% if volume.display_name is defined %}
+    display_name    = {{ volume.display_name | safe }}
+{% else %}
+    display_name    = {{ display_name | safe }}
+{% endif %}
+    is_read_only    = {{ volume.is_read_only | safe | lower }}
+    is_shareable    = {{ volume.is_shareable | safe | lower }}
+}
+{% endfor %}
+
+# ------ Create VNic Attachments
+{% for vnic in vnic_attachments %}
+{% if loop.index > 1 %}
+resource "oci_core_vnic_attachment" "{{ resource_name }}VnicAttachment{{ loop.index }}" {
+    #Required
+    create_vnic_details {
+        #Required
+        subnet_id        = {{ vnic.subnet_id }}
+        #Optional
+        display_name     = {{ vnic.display_name | safe }}
+        assign_public_ip = {{ vnic.assign_public_ip | safe | lower }}
+    {% if defined_tags is defined %}
+        defined_tags     = {{ defined_tags | safe }}
+    {% endif %}
+    {% if freeform_tags is defined %}
+        freeform_tags    = {{ freeform_tags | safe }}
+    {% endif %}
+        hostname_label   = {{ vnic.hostname_label | safe }}
+    {% if vnic.nsg_ids is defined %}
+        nsg_ids          = [{% for nsg_id in vnic.nsg_ids %}{{ nsg_id }}{% if not loop.last %},{% endif %}{% endfor %}]
+    {% endif %}
+    {% if vnic.private_ip is defined %}
+        private_ip       = {{ vnic.private_ip | safe }}
+    {% endif %}
+    {% if vnic.skip_source_dest_check is defined %}
+        skip_source_dest_check = {{ vnic.skip_source_dest_check | safe | lower }}
+    {% endif %}
+    }
+    instance_id = local.{{ resource_name }}_id
+
+    #Optional
+    display_name = {{ vnic.display_name | safe }}
+}
+{% endif %}
+{% endfor %}
+{% endif %}

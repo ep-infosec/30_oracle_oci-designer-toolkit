@@ -1,0 +1,44 @@
+/*
+# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
+ */
+
+ .okit-markdown-canvas {
+    display: block;
+    background: #fff;
+    padding: 5px 15px 5px 5px;
+    margin: 0;
+    height: 100%;
+    width: 100%;
+    overflow: scroll;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: smaller;
+}
+
+.okit-markdown-canvas p {
+    font-size: larger;
+}
+
+.okit-markdown-canvas code {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: larger;
+}
+
+.okit-markdown-canvas table,th,td {
+    border: 1px solid grey;
+    border-collapse: collapse;}
+
+.okit-markdown-canvas tr:nth-child(even) {
+    background-color: lightsteelblue;
+    height: 1.5em;
+}
+
+.okit-markdown-canvas th {
+    font-size: larger;
+    padding: 2px;
+}
+
+.okit-markdown-canvas td {
+    font-size: larger;
+    padding: 2px;
+}

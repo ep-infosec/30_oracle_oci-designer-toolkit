@@ -1,0 +1,20 @@
+
+/*
+# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
+ */
+
+ .tabular-row-selected {
+    font-weight: bolder;
+}
+
+.tabular-tab-contents {
+    display: block;
+    width: 100%;
+    height: var(--tab-content-height);
+    overflow-x: auto;
+    overflow-y: scroll;
+    white-space: nowrap;
+    flex-wrap: nowrap;
+    scrollbar-width: none; /* Firefox */
+}

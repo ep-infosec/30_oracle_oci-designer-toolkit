@@ -1,0 +1,58 @@
+/*
+** Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+** Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
+*/
+console.debug('Loaded {{ artefact_name }} Javascript');
+
+/*
+** Define {{ artefact_name }} Class
+*/
+class {{ model_class_name }} extends OkitArtifact {
+    /*
+    ** Create
+    */
+    constructor (data={}, okitjson={}) {
+        super(okitjson);
+        // Configure default values
+        this.compartment_id = data.parent_id;
+        /*
+        ** TODO: Add Resource / Artefact specific parameters and default
+        */
+        // Update with any passed data
+        this.merge(data);
+        this.convert();
+        // TODO: If the Resource is within a Subnet but the subnet_iss is not at the top level then raise it with the following functions if not required delete them.
+        // Expose subnet_id at the top level
+        Object.defineProperty(this, 'subnet_id', {get: function() {return this.primary_mount_target.subnet_id;}, set: function(id) {this.primary_mount_target.subnet_id = id;}, enumerable: false });
+    }
+    /*
+    ** Name Generation
+    */
+    getNamePrefix() {
+        return super.getNamePrefix() + '{{ name_prefix }}';
+    }
+    /*
+    ** Static Functionality
+    */
+    static getArtifactReference() {
+        return '{{ artefact_name }}';
+    }
+}
+/*
+** Dynamically Add Model Functions
+*/
+OkitJson.prototype.new{{ model_class_name }} = function(data) {
+    this.get{{ model_class_name }}s().push(new {{ model_class_name }}(data, this));
+    return this.get{{ model_class_name }}s()[this.get{{ model_class_name }}s().length - 1];
+}
+OkitJson.prototype.get{{ model_class_name }}s = function() {
+    if (!this.{{ artefact_json_list }}) this.{{ artefact_json_list }} = []
+    return this.{{ artefact_json_list }};
+}
+OkitJson.prototype.get{{ model_class_name }} = function(id='') {
+    return this.get{{ model_class_name }}s().find(r => r.id === id)
+}
+OkitJson.prototype.delete{{ model_class_name }} = function(id) {
+    this.{{ artefact_json_list }} = this.{{ artefact_json_list }} ? this.{{ artefact_json_list }}.filter((r) => r.id !== id) : []
+}
+

@@ -1,0 +1,17 @@
+<!--
+** Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+** Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
+-->
+{% extends "okit/propertysheets/base_property_sheet.html" %}
+
+{% block title_block %}Fast Connect{% endblock %}
+
+{% block required_properties_table_rows_block %}
+    <div class='tr'><div class='td'>Dynamic Routing Gateway</div><div class='td'><select id="gateway_id" class="okit-property-value"></select></div></div>
+{% endblock %}
+
+{% block optional_properties_table_block %}
+<div class='tr'><div class='td'>Customer Reference</div><div class='td'><input type="text" id="customer_reference_name" name="customer_reference_name" class="okit-property-value"></div></div>
+{% endblock %}
+
+{% block optional_properties_block %}{% endblock %}

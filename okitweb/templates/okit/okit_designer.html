@@ -1,0 +1,377 @@
+<!--
+** Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+** Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
+-->
+{% extends "okit/okit_console.html" %}
+
+{% import "okit/menu_macros.jinja2" as menu with context %}
+{% import "okit/panel_macros.jinja2" as panel with context %}
+{% import "okit/palette_macros.jinja2" as palette with context %}
+
+{% block headscripts %}
+    <script type="text/javascript" src="{{ url_for('static', filename='okit/js/okit.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='okit/js/okit_views.js') }}"></script>
+    {% for js_file in resource_files.js %}
+        <script type="text/javascript" src="{{ url_for('static', filename='okit/' + js_file) }}"></script>
+    {% endfor %}
+    <script type="text/javascript" src="{{ url_for('static', filename='okit/query/oci/js/okit_oci_query.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='okit/query/pca/js/okit_pca_query.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='okit/js/okit_designer.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='okit/js/okit_view_layout.js') }}"></script>
+    <script type="text/javascript">
+        let palette_svg = {}
+        let resource_icon_files = {}
+        let xmlSerialiser = new XMLSerializer();
+        let icon_title = '';
+        const parser = new DOMParser();
+        const palette_json = {{ palette_json | safe }}
+        const svg_data = {{ palette_json.svg | safe }}
+        Object.entries(svg_data).forEach(([k,v]) => {
+            const xml = parser.parseFromString(v, "application/xml")
+            const g = $(xml).find("g")
+            const svg = $(xml).find("svg")
+            const style = $(xml).find("style")
+            g[0].removeAttribute('transform')
+            let svgg = xmlSerialiser.serializeToString(g[0])
+            if (style.length > 0) {
+                if (style[0].sheet) {
+                    for (let rule of style[0].sheet.cssRules) {
+                        const fromStr = `class="${rule.selectorText.substring(1)}"`
+                        const toStr = `style="${rule.style.cssText}"`
+                        svgg = svgg.replaceAll(fromStr, toStr)
+                    }
+                } else {
+                    for (let rule of style[0].textContent.split('\t').filter((r) => r !== '')) {
+                        const fromStr = `class="${rule.substring(1, rule.indexOf('{')).trim()}"`
+                        const cssText = rule.substring(rule.indexOf('{') + 1, rule.indexOf('}')).trim()
+                        const toStr = `style="${cssText}"`
+                        svgg = svgg.replaceAll(fromStr, toStr)
+                    }
+                }
+            }
+            svg_data[k] = svgg
+            palette_json.svg[k] = svgg
+        })
+        palette_svg = palette_json.svg
+        resource_icon_files = palette_json.files
+        const resource_icons_svg = palette_svg;
+        const resource_icons = {
+            svg: palette_json.svg,
+            files: palette_json.files
+        }
+    </script>
+    <script type="text/javascript" src="{{ url_for('static', filename='okit/js/okit_designer_svg.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='okit/js/okit_designer_drag_drop.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='okit/js/okit_designer_generation.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='okit/js/okit_import.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='okit/js/okit_designer_properties.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='okit/js/okit_designer_ready.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='okit/js/okit_dialogs.js') }}"></script>
+{% endblock %}
+
+{% block headcss %}
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='okit/css/okit_designer.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='okit/css/okit_panels.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='okit/css/okit_threedots_menu.css') }}">
+    {% for css_file in resource_files.css %}
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='okit/' + css_file) }}">
+    {% endfor %}
+{% endblock %}
+
+{% block navmenublock %}
+    <ul id="navigation_menu_list" class="okit-navigation-list">
+        <ul id="canvas_menu" class="okit-navigation-sub-list">
+            <li>
+                <div>
+                    <span class="header-item">
+                        <div class="header-item-icon"><img src="{{ url_for('static', filename='svg/compute.svg') }}" alt="Canvas Menu"></div>
+                        <span>Canvas</span>
+                    </span>
+                </div>
+            </li>
+            <li id="file_recover_menu_item_li" class="hidden"><a id="file-recover-menu-item" class="parent-item" href="javascript:void(0)" onclick="handleRecover()">Recover</a></li>
+            <li class="menu-item okit-target oci freetier pca"><a id="file-new-menu-item" class="parent-item" href="javascript:void(0)" onclick="handleNew()">New</a></li>
+            <li id="save_menu" class="sub-header-item dropdown" onmouseover="handleDropdownMenuMouseOver()">
+                <span>Save</span>
+                <ul class="dropdown-content">
+                    <li class="menu-item okit-target oci freetier pca"><a id="file-save-to-container-menu-item" class="parent-item" href="javascript:void(0)" onclick="handleSaveToContainer()">Save</a></li>
+                    <li class="menu-item okit-target oci freetier pca"><a id="file-save-as-menu-item" class="parent-item" href="javascript:void(0)" onclick="handleSaveAsTemplate()">Save As Template</a></li>
+                    <li class="menu-item okit-target oci freetier pca"><a id="file-save-as-menu-item-git" class="parent-item" href="javascript:void(0)" onclick="handleSaveToGit()">Save To Git</a></li>
+                    <li class="menu-item okit-target oci freetier pca"><a id="file-save-as-menu-item-terraform" class="parent-item" href="javascript:void(0)" onclick="handleSaveAsTerraform()">Save As Terraform</a></li>
+                </ul>
+            </li>
+            {% if local_okit or session['username'] %}
+            <li class="menu-item okit-target oci freetier"><a id="query-oci-menu-item" class="parent-item" href="javascript:void(0)" onclick="handleQueryOCI()">Query OCI</a></li>
+            <li class="menu-item okit-target pca"><a id="query-oci-menu-item" class="parent-item" href="javascript:void(0)" onclick="handleQueryPCA()">Query PCA</a></li>
+            {% endif %}
+        </ul>
+        <ul id="export_menu" class="okit-navigation-sub-list">
+            <li>
+                <div>
+                    <span class="header-item">
+                        <div class="header-item-icon"><img src="{{ url_for('static', filename='svg/compute.svg') }}" alt="Export Menu"></div>
+                        <span>Export</span>
+                    </span>
+                </div>
+            </li>
+            <li id="image_export" class="sub-header-item dropdown" onmouseover="handleDropdownMenuMouseOver()">
+                <span>Image</span>
+                <ul class="dropdown-content">
+                    <li class="menu-item okit-target oci freetier pca"><a id="file-export-svg-menu-item" class="parent-item" href="javascript:void(0)" onclick="handleExportToSVG()">svg</a></li>
+                    <li class="menu-item okit-target oci freetier pca"><a id="file_export_png_menu_item" class="parent-item" href="javascript:void(0)" onclick="handleExportToPNG()">png</a></li>
+                    <li class="menu-item okit-target oci freetier pca"><a id="file_export_jpg_menu_item" class="parent-item" href="javascript:void(0)" onclick="handleExportToJPG()">jpeg</a></li>
+                </ul>
+            </li>
+            <li class="menu-item okit-target oci freetier pca"><a id="file-save-menu-item" class="parent-item" href="javascript:void(0)" onclick="handleSave()">OKIT Json</a></li>
+            <li class="menu-item okit-target oci freetier pca"><a id="generate-terraform-menu-item" class="parent-item" href="javascript:void(0)" onclick="handleExportToTerraformLocal()">Terraform</a></li>
+            {%- if ansible_mode -%}
+            <li class="menu-item okit-target oci freetier pca"><a id="generate-ansible-menu-item"   class="parent-item" href="javascript:void(0)" onclick="handleExportToAnsibleLocal()">Ansible</a></li>
+            {%- endif -%}
+            {% if local_okit or session['username'] %}
+            <li class="menu-item okit-target oci freetier"><a id="file-export-rm-menu-item"  class="parent-item" href="javascript:void(0)" onclick="handleExportToResourceManager()">Resource Manager</a></li>
+            {% endif %}
+            <li class="menu-item okit-target oci freetier pca"><a id="generate-markdown-menu-item"   class="parent-item" href="javascript:void(0)" onclick="handleExportToMarkdownLocal()">Markdown</a></li>
+        </ul>
+        <ul id="import_menu" class="okit-navigation-sub-list">
+            <li>
+                <div>
+                    <span class="header-item">
+                        <div class="header-item-icon"><img src="{{ url_for('static', filename='svg/compute.svg') }}" alt="Import Menu"></div>
+                        <span>Import</span>
+                    </span>
+                </div>
+            </li>
+            <li class="menu-item okit-target oci freetier"><a id="import-oci-menu-item" class="parent-item" href="javascript:void(0)" onclick="handleImportFromOCI()">OCI Resources</a></li>
+            <li class="menu-item okit-target pca"><a id="import-oci-menu-item" class="parent-item" href="javascript:void(0)" onclick="handleImportFromPCA()">PCA-X9 Resources</a></li>
+            <li class="menu-item okit-target oci freetier pca"><a id="file-load-menu-item" class="parent-item" href="javascript:void(0)" onclick="handleLoad()">OKIT Json</a></li>
+            <!-- <li class="menu-item okit-target oci freetier pca"><a id="import-hcl-json-menu-item" class="parent-item" href="javascript:void(0)" onclick="handleImportFromHCLJson()">Terraform Json</a></li> -->
+            <li id="tf_state_import_menu" class="sub-header-item dropdown" onmouseover="handleDropdownMenuMouseOver()">
+                <span>Terraform State (Experimental)</span>
+                <ul class="dropdown-content">
+                    <li class="menu-item okit-target oci freetier pca"><a id="import-tfstate-json-menu-item" class="parent-item" href="javascript:void(0)" onclick="handleImportFromTFStateJson()">State File</a></li>
+                    <li class="menu-item okit-target oci freetier"><a id="import-rmtfstate-json-menu-item" class="parent-item" href="javascript:void(0)" onclick="handleImportFromRMTFStateJson()">Resource Manager</a></li>
+                </ul>
+            </li>
+            {% if cd3_mode %}
+            <li class="menu-item okit-target oci freetier"><a id="import-cd3-xlsx-menu-item" class="parent-item" href="javascript:void(0)" onclick="handleImportFromCd3Xlsx()">CD3 Excel</a></li>
+            {% endif %}
+        </ul>
+        <ul id="okit_menu" class="okit-navigation-sub-list">
+            <li>
+                <div>
+                    <span class="header-item">
+                        <div class="header-item-icon"><img src="{{ url_for('static', filename='svg/compute.svg') }}" alt="Admin Menu"></div>
+                        <span>Admin</span>
+                    </span>
+                </div>
+            </li>
+            <li class="menu-item okit-target oci freetier pca"><a id="file-clone-rw-menu-item"  class="parent-item" href="javascript:void(0)" onclick="handleEnableCreate()">Enable R/W</a></li>
+            <li class="menu-item okit-target oci freetier pca"><a id="import-refresh-static-menu-item" class="parent-item" href="javascript:void(0)" onclick="handleRefreshDropdownData()">Refresh Cache</a></li>
+        </ul>
+        {% if experimental_mode %}
+        <ul class="okit-navigation-sub-list">
+            <li>
+                <div>
+                    <span class="header-item">
+                        <div class="header-item-icon"><img src="{{ url_for('static', filename='svg/governance.svg') }}" alt="Experiment Menu"></div>
+                        <span>Experimental</span>
+                    </span>
+                </div>
+            </li>
+            <li><a id="import-cce-json-menu-item" class="parent-item" href="javascript:void(0)" onclick="handleImportFromCCEJson()">Cost Estimator Json (Import)</a></li>
+            <li><a id="view-network-menu-item"  class="parent-item" href="javascript:void(0)" onclick="handleSwitchToNetworkView()">Network (View)</a></li>
+            <li><a id="view-security-menu-item" class="parent-item" href="javascript:void(0)" onclick="handleSwitchToSecurityView()">Security (View)</a></li>
+        </ul>
+        {% endif %}
+    </ul>
+{% endblock %}
+
+{% block toolbarblock %}
+    <div id="okit_toolbar_left" class="okit-toolbar-left">
+        <div>
+            <select id="toolbar_view_select" class="okit-toolbar-select" onchange="handleViewSelect()">
+                <option id="designer_view_option"  value="designer" selected="selected">Designer</option>
+                {%- if developer_mode -%}<option id="freeform_view_option" value="freeform">Freeform</option>{%- endif -%}
+                <option id="identity_view_option"  value="identity">Users/Groups</option>
+                <option id="bom_view_option" value="bom">BoM</option>
+                <option id="tabular_view_option" value="tabular">Tabular</option>
+                <option id="variables_view_option" value="variables">Variables</option>
+                <option id="relationship_view_option" value="relationship">Relationship</option>
+                <option id="tf_view_option" value="terraform">Terraform</option>
+                <option id="markdown_view_option" value="markdown">Markdown</option>
+                <option id="json_view_option" value="json">Json</option>
+                {%- if developer_mode -%}<option id="cache_view_option" value="cache">Cache</option>{%- endif -%}
+            </select>
+        </div>
+    </div>
+    <div id="okit_toolbar_centre" class="okit-toolbar-centre">
+        <div id="zoom_controls">
+            <div id="zoom_out_toolbar_button" class="zoom-out okit-toolbar-button" title="Zoom Out"></div>
+            <div id="zoom_121_toolbar_button" class="zoom-121 okit-toolbar-button" title="Zoom 1"></div>
+            <div id="zoom_in_toolbar_button" class="zoom-in okit-toolbar-button" title="Zoom In"></div>
+        </div>
+    </div>
+    <div id="okit_toolbar_right" class="okit-toolbar-right">
+        <div>
+            <div id="refresh_toolbar_button" class="refresh okit-toolbar-button" title="Redraw" onclick="handleRedraw()"></div>
+            <div id="settings_toolbar_button" class="settings okit-toolbar-button" title="Settings" onclick="handleSettings()"></div>
+            <div id="validate_toolbar_button" class="validate okit-toolbar-button" title="Validate" onclick="handleValidate()"></div>
+            <div id="properties_toolbar_button" class="properties okit-toolbar-button" title="Resource Properties" onclick="handleOpenProperties()"></div>
+            <div id="cost_toolbar_button" class="cost-estimate okit-toolbar-button" title="Cost Estimate" onclick="handleEstimateCost()"></div>
+            <div id="documentation_toolbar_button" class="documentation okit-toolbar-button" title="Documentation" onclick="handleDocumentation()"></div>
+            <div id="terraform_toolbar_button" class="terraform okit-toolbar-button" title="Terraform" onclick="handleFreeformTerraform()"></div>
+            <div id="tags_toolbar_button" class="global-tags okit-toolbar-button" title="Global Tags" onclick="handleGlobalTags()"></div>
+            <!-- <div id="threedots_toolbar_button" class="threedotmenu okit-toolbar-button" title="Menu" onclick="handleThreeDotsMenu()"></div> -->
+        </div>
+    </div>
+{% endblock %}
+
+{% block mainblock %}
+    <div id="designer_left_column" class="okit-designer-left-column">
+        {{ palette.add_palette(palette_json) }}
+        <div id="explorer_panel"   class="okit-left-side-panel okit-explorer-panel okit-explorer-view hidden"></div>
+        <div id="git_panel"        class="okit-left-side-panel okit-git-panel hidden"></div>
+        <div id="local_panel"      class="okit-left-side-panel okit-local-panel hidden"></div>
+        <div id="templates_panel"  class="okit-left-side-panel okit-template-panel hidden"></div>
+        <div id="oci_import_panel" class="okit-left-side-panel okit-oci-import-panel hidden"></div>
+    </div>
+    <div id="designer_center_column" class="okit-designer-center-column okit-slide-show">
+        <div id="center-header" class="okit-center-header">
+            <div id="canvas_details" class="okit-canvas-details table">
+                <div class="tr">
+                    <div class="td"><label>Target</label></div>
+                    <div class="td">
+                        <select id="deployment_platform" onchange="handleTargetPlatformSelect()" {%- if pca_mode or oci_mode -%}disabled{%- endif -%}>
+                            <option value="oci" selected="selected">OCI</option>
+                            <!-- <option value="freetier">OCI Free Tier</option> -->
+                            <option value="pca">PCA-X9</option>
+                        </select>
+                    </div>
+                    <div class="td"><label>Title</label></div><div class="td"><input id="json_title" type="text" size="100" onchange="updateJsonTitle()"/></div>
+                </div>
+            </div>
+        </div>
+        <div id="center-panels" class="okit-center-panels">
+            <div id="region_tab_bar" class="okit-tab-bar hidden"></div>
+            <div id="canvas-div" class="okit-svg-canvas"></div>
+            <div id="tabular-div" class="okit-tabular-canvas hidden"></div>
+            <div id="network-div" class="okit-network-canvas hidden"></div>
+            <div id="security-div" class="okit-security-canvas hidden"></div>
+            <div id="identity-div" class="okit-identity-canvas hidden"></div>
+            <div id="relationship-div" class="okit-relationship-canvas hidden"></div>
+            <div id="json-text-div" class="okit-text-json-canvas hidden"></div>
+            <div id="terraform-div" class="okit-terraform-canvas hidden"></div>
+            <div id="bom-div" class="okit-bom-canvas hidden"></div>
+            <div id="markdown-div" class="okit-markdown-canvas hidden"></div>
+            <div id="variables-div" class="okit-variables-canvas hidden"></div>
+            <div id="freeform-div" class="okit-freeform-canvas hidden"></div>
+        </div>
+    </div>   
+    <div class="hidden"><input type="file" id="files" class="file-button toolbar-button" name="file[]" accept="application/json" onclick="this.value = null"></div>
+    <div id="context-menu" class="hidden context-menu"><button id="right-click-delete">Delete</button></div>
+{% endblock %}
+
+{% block bodyendblock %}
+<div id="properties_panel" class="okit-right-side-panel okit-slide-hide-right"></div>
+<div id="documentation_panel" class="okit-right-side-panel okit-slide-hide-right"><textarea id="json_description" name="json_description" onchange="updateJsonDescription()" wrap="soft" placeholder="Enter design documentation (Markdown supported)"></textarea></div>
+<div id="terraform_panel" class="okit-right-side-panel okit-slide-hide-right"><textarea id="freeform_terraform" name="freeform_terraform" onchange="updateFreeformTerraform()" wrap="soft" placeholder="Enter custom Terraform (OKIT does not validate this)"></textarea></div>
+<div id="validation_panel" class="okit-right-side-panel okit-slide-hide-right">
+    <div id="validation_header_div"><label id="validation_status"></label></div>
+    <details open>
+        <summary><a>
+            <svg width="20" height="20" viewBox="0 0 20 20" focusable="false" xmlns="http://www.w3.org/2000/svg" ratio="1"> <ellipse fill="none" stroke="#000" cx="6.11" cy="3.55" rx="2.11" ry="2.15"></ellipse> <ellipse fill="none" stroke="#000" cx="6.11" cy="15.55" rx="2.11" ry="2.15"></ellipse> <circle fill="none" stroke="#000" cx="13.15" cy="9.55" r="2.15"></circle> <rect x="1" y="3" width="3" height="1"></rect> <rect x="10" y="3" width="8" height="1"></rect> <rect x="1" y="9" width="8" height="1"></rect> <rect x="15" y="9" width="3" height="1"></rect> <rect x="1" y="15" width="3" height="1"></rect> <rect x="10" y="15" width="8" height="1"></rect></svg>
+            <span id="validation_errors_summary">Errors</span></a>
+        </summary>
+        <div class="table okit-table okit-properties-table">
+            <div class="thead">
+                <div class="tr"><div class="th">Type</div><div class="th">Artefact</div><div class="th">Message</div></div>
+            </div>
+            <div id="validation_errors_tbody" class="tbody">
+            </div>
+        </div>
+    </details>
+    <details open>
+        <summary><a>
+            <svg width="20" height="20" viewBox="0 0 20 20" focusable="false" xmlns="http://www.w3.org/2000/svg" ratio="1"> <ellipse fill="none" stroke="#000" cx="6.11" cy="3.55" rx="2.11" ry="2.15"></ellipse> <ellipse fill="none" stroke="#000" cx="6.11" cy="15.55" rx="2.11" ry="2.15"></ellipse> <circle fill="none" stroke="#000" cx="13.15" cy="9.55" r="2.15"></circle> <rect x="1" y="3" width="3" height="1"></rect> <rect x="10" y="3" width="8" height="1"></rect> <rect x="1" y="9" width="8" height="1"></rect> <rect x="15" y="9" width="3" height="1"></rect> <rect x="1" y="15" width="3" height="1"></rect> <rect x="10" y="15" width="8" height="1"></rect></svg>
+            <span id="validation_warnings_summary">Warnings</span></a>
+        </summary>
+        <div class="table okit-table okit-properties-table">
+            <div class="thead">
+                <div class="tr"><div class="th">Type</div><div class="th">Artefact</div><div class="th">Message</div></div>
+            </div>
+            <div id="validation_warnings_tbody" class="tbody">
+            </div>
+        </div>
+    </details>
+    <details open>
+        <summary><a>
+            <svg width="20" height="20" viewBox="0 0 20 20" focusable="false" xmlns="http://www.w3.org/2000/svg" ratio="1"> <ellipse fill="none" stroke="#000" cx="6.11" cy="3.55" rx="2.11" ry="2.15"></ellipse> <ellipse fill="none" stroke="#000" cx="6.11" cy="15.55" rx="2.11" ry="2.15"></ellipse> <circle fill="none" stroke="#000" cx="13.15" cy="9.55" r="2.15"></circle> <rect x="1" y="3" width="3" height="1"></rect> <rect x="10" y="3" width="8" height="1"></rect> <rect x="1" y="9" width="8" height="1"></rect> <rect x="15" y="9" width="3" height="1"></rect> <rect x="1" y="15" width="3" height="1"></rect> <rect x="10" y="15" width="8" height="1"></rect></svg>
+            <span id="validation_info_summary">Information</span></a>
+        </summary>
+        <div class="table okit-table okit-properties-table">
+            <div class="thead">
+                <div class="tr"><div class="th">Type</div><div class="th">Artefact</div><div class="th">Message</div></div>
+            </div>
+            <div id="validation_info_tbody" class="tbody">
+            </div>
+        </div>
+    </details>
+</div>
+<div id="cost_estimate_panel" class="okit-right-side-panel okit-slide-hide-right"></div>
+<div id="global_tags_panel" class="okit-right-side-panel okit-slide-hide-right">
+    <details open>
+        <summary class="details summary-background"><label>Freeform Tags</label></summary>
+        <div class="table okit-table"><div class="thead"><div class="tr"><div class="th">Key</div><div class="th">Value</div><div class="th add-tag action-button-background action-button-column" onclick="handleAddGlobalFreeformTag()"></div></div></div><div id="global_freeform_tags_tbody" class="tbody"></div></div>
+    </details>
+    <details open>
+        <summary class="details summary-background"><label>Defined Tags</label></summary>
+        <div class="table okit-table"><div class="thead"><div class="tr"><div class="th">Namespace</div><div class="th">Key</div><div class="th">Value</div><div class="th add-tag action-button-background action-button-column" onclick="handleAddGlobalDefinedTag()"></div></div></div><div id="global_defined_tags_tbody" class="tbody"></div></div>
+    </details>
+</div>
+<div id="settings_panel" class="okit-right-side-panel okit-slide-hide-right"></div>
+<div id="data_entry_panel" class="okit-right-side-panel okit-slide-hide-right"><div class="okit-data-entry-title"><label id="data_entry_panel_title"></label><div class="cancel action-button-background" onclick="handleCancelDataEntry()"></div></div><div id="data_entry_panel_body" class="okit-data-entry-panel"></div><div id="data_entry_panel_footer" class="okit-data-entry-footer"></div></div>
+<div id="threedots_menu_panel" class="okit-threedots-menu-panel okit-slide-hide-right">
+    <!-- <ul>
+        <li><a>Canvas</a> 
+            <ul>
+                <li><a>New</a></li>
+                <li><a>Save</a>
+                    <ul>
+                        <li><a>Local</a></li>
+                        <li><a>As Template</a></li>
+                        <li><a>To Git</a></li>
+                    </ul>
+                </li>
+                <li><a>Import</a>
+                    <ul>
+                        <li><a>Json</a></li>
+                        <li><a>Import</a></li>
+                        <li><a>Export</a></li>
+                    </ul>
+                </li>
+                <li><a>Export</a>
+                    <ul>
+                        <li><a>Json</a></li>
+                        <li><a>Terraform</a></li>
+                        <li><a>Resource Manager</a></li>
+                        <li><a>Image</a>
+                            <ul>
+                                <li><a>SVG</a></li>
+                                <li><a>PNG</a></li>
+                                <li><a>JPG</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </li>
+    </ul> -->
+</div>
+<datalist id="variables_datalist"></datalist>
+{% endblock %}
+
+{% block footerblock %}
+{% endblock %}
+
+{% block footerscripts %}
+{% endblock %}

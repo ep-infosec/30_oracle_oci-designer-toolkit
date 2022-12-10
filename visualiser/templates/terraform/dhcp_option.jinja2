@@ -1,0 +1,62 @@
+
+{% if read_only %}
+# ------ Read Dhcp Options
+data "oci_core_dhcp_options" "{{ resource_name }}" {
+    # Required
+    compartment_id = {{ compartment_id }}
+    filter {
+        name = "id"
+        values = [{{ ocid | safe }}]
+    }
+}
+
+locals {
+    {{ resource_name }}_id = {{ ocid | safe }}
+}
+{% else %}
+# ------ Create Dhcp Options
+{% if default %}
+# ------- Update VCN Default DHCP Option
+resource "oci_core_default_dhcp_options" "{{ resource_name }}" {
+    # Required
+    manage_default_resource_id = {{ vcn_id | trim('id') }}default_dhcp_options_id
+{% else %}
+resource "oci_core_dhcp_options" "{{ resource_name }}" {
+    # Required
+    compartment_id = {{ compartment_id }}
+    vcn_id         = {{ vcn_id }}
+{% endif %}
+{% for option in options %}
+    options    {
+        type  = {{ option.type | safe }}
+    {% if option.server_type is defined and option.server_type | length > 0 %}
+        server_type = {{ option.server_type | safe }}
+    {% endif %}
+    {% if option.custom_dns_servers is defined %}
+        custom_dns_servers       = [{% for dns_server in option.custom_dns_servers %}"{{ dns_server }}"{% if not loop.last %},{% endif %}{% endfor %}]
+    {% endif %}
+    {% if option.search_domain_names is defined %}
+        search_domain_names      = [{% for domain_name in option.search_domain_names %}"{{ domain_name }}"{% if not loop.last %},{% endif %}{% endfor %}]
+    {% endif %}
+    }
+{% endfor %}
+    # Optional
+    display_name   = {{ display_name | safe }}
+{% if defined_tags is defined %}
+    defined_tags   = {{ defined_tags | safe }}
+{% endif %}
+{% if freeform_tags is defined %}
+    freeform_tags  = {{ freeform_tags | safe }}
+{% endif %}
+}
+
+{% if default %}
+locals {
+    {{ resource_name }}_id = oci_core_default_dhcp_options.{{ resource_name }}.id
+    }
+{% else %}
+locals {
+    {{ resource_name }}_id = oci_core_dhcp_options.{{ resource_name }}.id
+}
+{% endif %}
+{% endif %}

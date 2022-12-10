@@ -1,0 +1,592 @@
+/*
+# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
+ */
+
+/*
+** Palette (Left Column) Classes
+ */
+
+.okit-designer-left-column {
+    position: relative;
+    display: flex;
+    min-width: 180px;
+    /* width: 180px; */
+    border-right: #aeaeae 1px solid;
+    transition: all 0.25s;
+}
+
+.okit-designer-left-column-closed {
+    transition: all 0.25s;
+    transform: translateX(-150px);
+}
+
+.okit-target-toggle {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 5px;
+    border-bottom: black 2px solid;
+    padding-left: 5px;
+    font-weight: bold;
+
+}
+
+.okit-target-toggle > label {
+    font-size: 8pt;
+}
+
+.okit-icons-toggle {
+    display: block;
+    margin: auto;
+    padding-left: 5px;
+    height: 30px;
+}
+
+.okit-icons-toggle > input[type=radio] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;  
+}
+
+.okit-icons-toggle > input[type=radio] + label {
+    cursor: pointer;
+    vertical-align: middle;
+}
+
+.okit-icons-toggle > input[type=radio]:checked + label {
+    outline: 1px solid #1d2733;
+}
+
+.okit-icons-toggle > label {
+    font-size: 8pt;
+    min-height: 25px;
+    background-repeat: no-repeat;
+    background-position-x: 2px;
+    background-size: contain;
+    padding: 2px 2px 2px 25px;
+    margin: 5px;
+}
+
+.okit-icons-palette {
+    overflow-y: scroll;
+}
+
+.okit-icons-palette details {
+    width: 180px;
+}
+
+.okit-palette-icon-group {
+
+}
+
+.okit-palette-group-icon {
+
+}
+
+.okit-palette-icon {}
+
+.okit-palette-icon:hover {
+    outline: 1px solid red;
+}
+
+.okit-fragment-icon {}
+
+.okit-fragment-icon:hover {
+    outline: 1px solid red;
+}
+
+.okit-palette-icon-group-header {
+    width: 100%;
+    border-bottom: solid black 1px;
+    padding-bottom: 2px;
+}
+
+.okit-palette-icon-group-header img {
+    max-height: 24px;
+    max-width: 24px;
+    padding-right: 5px;
+    padding-left: 5px;
+}
+
+.okit-palette-icon-group-header label {
+    font-family: Helvetica Neue,Helvetica,Arial,sans-serif;
+    font-size: smaller;
+    color: #1d2733;
+    vertical-align: text-top;
+}
+
+.okit-palette-icon-group-icons {}
+
+.okit-icons-only {
+    display: grid;
+    grid-template-columns: auto auto auto;
+}
+
+.okit-icons-only > div {
+    display: initial;
+}
+
+.okit-icons-only > div > img {
+    width: 40px;
+    height: 40px;
+    margin: 2px;
+}
+
+.okit-icons-only > div > label {
+    visibility: hidden;
+    display: none;
+}
+
+.okit-icons-and-text > div {
+    display: block;
+    overflow: hidden;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.okit-icons-and-text1 > div:hover {
+    border: 1px solid red;
+}
+
+.okit-icons-and-text > div > img {
+    width: 25px;
+    height: 25px;
+    margin: 2px;
+}
+
+.okit-icons-and-text > div > label {
+    display: inline-block;
+    height: 25px;
+    max-height: 25px;
+    font-size: 8pt;
+    vertical-align: middle;
+}
+
+/*
+** Canvas (Centre Column) Classes
+ */
+
+.okit-designer-center-column {
+    position: relative;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    transition: all 0.25s;
+}
+
+.okit-center-header {
+    border-bottom: 1px solid black;
+    margin-bottom: 5px;
+}
+
+.okit-center-panels {
+    width: 100%;
+    height: 100%;
+}
+
+.okit-tab-bar {
+    display: block;
+    padding-top: 3px;
+    width: 100%;
+    max-height: 30px;
+    border-bottom: #aeaeae 1px solid;
+    overflow-x: auto;
+    white-space: nowrap;
+    flex-wrap: nowrap;
+    scrollbar-width: none; /* Firefox */
+}
+
+.okit-tab-bar::-webkit-scrollbar {
+    display: none;  /* Safari and Chrome */
+}
+
+.okit-tab {
+    display: inline-block;
+    margin-top: 1px;
+    height: var(--tab-bar-height);
+    border: none;
+    font-size: 14px;
+    color: #aeaeae;
+}
+
+.okit-tab-contents {
+    display: block;
+    width: 100%;
+    height: var(--tab-content-height);
+    overflow-x: auto;
+    white-space: nowrap;
+    flex-wrap: nowrap;
+    scrollbar-width: none; /* Firefox */
+}
+
+.okit-tab:hover {
+    color: black !important;
+}
+
+.okit-tab:focus {
+    outline: none;
+}
+
+.okit-tab-active {
+    height: 30px;
+    border-top: #aeaeae 1px solid;
+    border-left: #aeaeae 1px solid;
+    border-right: #aeaeae 1px solid;
+    font-weight: bold;
+    color: black;
+}
+
+.okit-tab-progress {
+    animation: animate-icing 2.2s linear infinite;
+    background: linear-gradient(#eee, #eee) no-repeat;
+    position: relative;
+}
+
+.okit-tab-progress:before {
+    background: linear-gradient(90deg, #a3f022, #3e9fff);
+    content: "";
+    position: absolute;
+    height: 1.1em;
+    width: 87%;
+    z-index: -1
+}
+
+.okit-tab-progress:after {
+    background-color: #fff;
+    content: "";
+    position: relative;
+    height: 1.1em;
+    width: 87%;
+}
+
+.okit-tabular-canvas {
+    display: block;
+    background: #fff;
+    padding: 1px;
+    margin: 0;
+    height: 100%;
+    width: 100%;
+    overflow: scroll;
+}
+
+.okit-relationship-canvas {
+    display: block;
+    background: #fff;
+    padding: 0;
+    margin: 0;
+    height: 100%;
+    width: 100%;
+    overflow: scroll;
+}
+
+.okit-relationship-canvas line.links {
+    stroke: #2C5967;
+}
+
+.okit-relationship-canvas rect {
+    /* fill: #99b6d3; */
+    fill: none;
+    stroke-width: 1.5px;
+}
+
+.okit-relationship-canvas text {
+    font-family: sans-serif;
+    font-size: 20px;
+    fill: #000;
+}
+
+.okit-svg-canvas {
+    display: block;
+    padding: 0;
+    margin: 0;
+    height: 100%;
+    width: 100%;
+    overflow: scroll;
+}
+
+.okit-canvas-details {
+    display: block;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    width: 100%;
+    overflow: hidden;
+}
+
+.okit-canvas-details > div > div > label {
+    font-family: Helvetica Neue,Helvetica,Arial,sans-serif;
+    font-weight: bold;
+    font-size: small;
+    margin-left: 1em;
+}
+
+.okit-canvas-details > div > div > input {
+    font-family: Helvetica Neue,Helvetica,Arial,sans-serif;
+    font-weight: normal;
+    margin-left: 1em;
+}
+
+.okit-canvas-details > div > div > select {
+    font-family: Helvetica Neue,Helvetica,Arial,sans-serif;
+    font-weight: normal;
+    margin-left: 1em;
+}
+
+.okit-canvas-details > div {
+    overflow: hidden;
+    width: 100%;
+}
+
+.json-description {
+    display: block;
+    height: 100%;
+    width: 100%;
+}
+
+/*
+** Property Sheet (Right Column) Classes
+ */
+
+.okit-designer-right-column {
+    position: relative;
+    margin: 0;
+    padding: 5px;
+    display: flex;
+    width: 500px;
+    min-width: 250px;
+    border-left: #aeaeae 1px solid;
+    transition: all 0.25s;
+}
+
+.okit-property-editor {
+}
+
+.property-editor-title {
+    padding-left: 25px;
+    width: 100%;
+    vertical-align: middle;
+    background-position-x: left;
+    background-position-y: center;
+    background-repeat: no-repeat;
+    background-size: 20px 20px;
+}
+
+.property-editor-cost-estimate {
+    display: inline-block;
+    margin-left: auto; 
+    align-items: right;
+    width: 100%;
+}
+
+.property-editor-cost-estimate > div {
+    margin-left: auto; 
+    width: fit-content;
+}
+
+.property-editor-cost-estimate > div > label {
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+.property-editor-cost-estimate > div > label:last-child {
+    font-weight: bold;
+}
+
+.okit-resource-properties-panel {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    display: block;
+}
+
+.okit-resource-properties-panel .okit-tab-contents {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+.okit-resource-properties-panel .okit-tab-contents textarea {
+    height: calc(100vh - 200px);
+}
+
+.okit-resource-properties-panel .okit-tab-contents textarea.okit-property-value {
+    height: 10em;
+}
+
+.okit-property-sheet {
+    opacity: 1;
+    height: 100%;
+    width: 100%;
+    overflow: auto;
+}
+
+.okit-property-sheet .okit-property-value {
+    font-weight: normal;
+    width: 100%;
+}
+
+summary .okit-property-value {
+    font-weight: normal;
+    width: 95%;
+    border: none;
+}
+
+.okit-property-sheet .okit-property-label {
+
+}
+
+.okit-settings-sheet {
+    opacity: 1;
+    height: 100%;
+    width: 100%;
+    overflow: auto;
+}
+
+.okit-resource-description {
+    resize: vertical;
+    white-space: normal;
+}
+
+.okit-source-code {
+    opacity: 1;
+    height: 100%;
+    width: 100%;
+    font-family: Consolas,monaco,monospace;
+}
+
+.okit-source-code pre {
+    padding: 0;
+    margin: 0;
+    height: 100%;
+    width: 100%;
+    font-size: 10px;
+    font-family: Consolas,monaco,monospace;
+    overflow-x: scroll;
+    overflow-y: scroll;
+}
+
+/*
+** Drag Bars
+ */
+
+.okit-vertical-drag-bar {
+    margin: 0;
+    padding: 0;
+    transform: translateX(-8px) translateY(-5px);
+    background-color: #aeaeae;
+    height: 110%;
+    float: right;
+    width: 4px;
+    cursor: col-resize !important;
+}
+
+.okit-vertical-ghost-bar {
+    width: 3px;
+    background-color: #000;
+    opacity: 0.5;
+    position: absolute;
+    cursor: col-resize !important;
+    z-index: 100
+}
+
+/*
+** SVG Highlighting
+ */
+
+rect.highlight {
+    stroke-width: 3;
+    stroke-dasharray: none;
+    stroke-opacity: 1;
+}
+
+rect.highlight-rect {
+    stroke-width: 2;
+    stroke-opacity: 1;
+}
+
+rect.highlight-vnic {
+    fill: #00cc00;
+}
+
+rect.highlight-association {
+    fill: #336600;
+    stroke-width: 2;
+    stroke-opacity: 1;
+}
+
+rect.highlight-properties {
+    fill: #336600;
+    stroke: red;
+    stroke-width: 2;
+    stroke-opacity: 1;
+}
+
+.read-only input,
+.read-only button,
+.read-only select,
+.read-only .action-button-background {
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+.read-only > g,
+.read-only > rect,
+.read-only > text {
+    opacity: 0.6;
+}
+
+.top-level > g,
+.top-level > rect,
+.top-level > text {
+    opacity: 0.7;
+}
+
+.top-level > foreignObject input,
+.top-level > foreignObject button,
+.top-level > foreignObject select,
+.top-level > foreignObject .action-button-background {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+/* .top-level > rect {
+    opacity: 0.7;
+}
+
+.top-level > text {
+    opacity: 0.7;
+} */
+
+/*
+** Cost Estimate and Value Proposition
+ */
+.okit-value-proposition {
+    opacity: 1;
+    height: 100%;
+    width: 100%;
+    font-family: Consolas, monaco, monospace;
+    overflow-x: scroll;
+    overflow-y: scroll;
+}
+
+.okit-cost-estimate {
+    opacity: 1;
+    height: 100%;
+    width: 100%;
+    font-family: Consolas, monaco, monospace;
+    overflow-x: scroll;
+    overflow-y: scroll;
+}
+
+.okit-cost-small-print {
+    font-size: small;
+    font-weight: bold;
+    font-style: italic;
+    font-family: Arial;
+    word-wrap: normal;
+    text-overflow: ellipsis;
+}

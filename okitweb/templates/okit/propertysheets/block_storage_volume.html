@@ -1,0 +1,32 @@
+<!--
+** Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+** Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
+-->
+{% extends "okit/propertysheets/base_property_sheet.html" %}
+
+{% block title_block %}Block Storage Volume{% endblock %}
+
+{% block required_properties_table_rows_block %}
+    <div class='tr'><div class='td'>Availability Domain</div><div class='td'><select id="availability_domain" class="okit-property-value">
+        <option value="1" selected="selected">Availability Domain 1</option>
+        <option value="2">Availability Domain 2</option>
+        <option value="3">Availability Domain 3</option>
+    </select></div></div>
+{% endblock %}
+
+{% block optional_properties_table_rows_block %}
+    <div class='tr'><div class='td'>Size (in GB)</div><div class='td'><input type="text" id="size_in_gbs" name="size_in_gbs" class="okit-property-value"></div></div>
+    <div class='tr'><div class='td'>Backup Policy</div><div class='td'><select id="backup_policy" class="okit-property-value">
+        <option value="" selected="selected"></option>
+        <option value="bronze">Bronze</option>
+        <option value="silver">Silver</option>
+        <option value="gold">Gold</option>
+    </select></div></div>
+    <div class='tr'><div class='td'>Performance</div><div class='td'><select id="vpus_per_gb" class="okit-property-value">
+    <option value="10" selected="selected">Balanced</option>
+    <option value="20">Higher</option>
+    <option value="0">Lower</option>
+</select></div></div>
+{% endblock %}
+
+{% block optional_properties_block %}{% endblock %}

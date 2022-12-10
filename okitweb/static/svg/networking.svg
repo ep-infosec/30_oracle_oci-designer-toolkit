@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+    id="redwood-nav-menu-networking-networking">
+    <defs>
+        <filter id="redwood-nav-menu-networking-filter-1">
+            <feColorMatrix in="SourceGraphic"
+                values="0 0 0 0 0.223529 0 0 0 0 0.772549 0 0 0 0 0.650980 0 0 0 1.000000 0"></feColorMatrix>
+        </filter>
+    </defs>
+    <g id="redwood-nav-menu-networking-icon-networking" fill="none" fill-rule="evenodd" stroke="none" stroke-width="1">
+        <g id="redwood-nav-menu-networking-Category-Icon--Networking"
+            filter="url(#redwood-nav-menu-networking-filter-1)">
+            <path id="redwood-nav-menu-networking-Shape" stroke="#39C5A6" stroke-width="2"
+                d="M12 9H9V3h6v6h-3zm0 0v3m0 0H6v3m6-3h6v3M6 15h3v6H3v-6h3zm12 0h3v6h-6v-6h3z"></path>
+        </g>
+    </g>
+</svg>

@@ -1,0 +1,32 @@
+<!--
+** Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+** Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
+-->
+{% extends "okit/propertysheets/base_property_sheet.html" %}
+
+{% block title_block %}Autonomous Database{% endblock %}
+
+{% block required_properties_table_rows_block %}
+    <div class='tr'><div class='td'>Database Name</div><div class='td'><input type="text" id="db_name" name="db_name" class="okit-property-value"></div></div>
+    <div class='tr'><div class='td'>Admin Password</div><div class='td'><input type="text" id="admin_password" name="admin_password" class="okit-property-value"></div></div>
+    <div class='tr'><div class='td'>Size (in TB)</div><div class='td'><input type="text" id="data_storage_size_in_tbs" name="data_storage_size_in_tbs" class="okit-property-value"></div></div>
+    <div class='tr'><div class='td'>CPU Core Count</div><div class='td'><input type="text" id="cpu_core_count" name="cpu_core_count" class="okit-property-value"></div></div>
+    <div class='tr'><div class='td'>Workload</div><div class='td'><select id="db_workload" class="okit-property-value">
+        <option value="OLTP" selected="selected">Transaction Processing</option>
+        <option value="DW">Data Warehouse</option>
+    </select></div></div>
+{% endblock %}
+
+{% block optional_properties_table_rows_block %}
+    <div class='tr'><div class='td'>License Model</div><div class='td'><select id="license_model" class="okit-property-value">
+        <option value="LICENSE_INCLUDED" selected="selected">License Included</option>
+        <option value="BRING_YOUR_OWN_LICENSE">Bring Your Own License</option>
+    </select></div></div>
+    <div class='tr'><div class='td'></div><div class='td'><input type="checkbox" id="is_auto_scaling_enabled" name="is_auto_scaling_enabled" value="false">Auto Scaling</div></div>
+    <div class='tr'><div class='td'></div><div class='td'><input type="checkbox" id="is_free_tier" name="is_free_tier" value="false">Always Free</div></div>
+    <div class='tr'><div class='td'>Subnet</div><div class='td'><select id="subnet_id" class="okit-property-value"></select></div></div>
+    <div class='tr'><div class='td'>Network Security Groups</div><div class='td'><div id="nsg_ids" class="okit-multiple-select"></div></div></div>
+    {{ properties_input('Endpoint Label', 'private_endpoint_label', type='text') }}
+    {% endblock %}
+
+{% block optional_properties_block %}{% endblock %}
